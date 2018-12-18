@@ -34,9 +34,17 @@ var GameState = {
 
     // load json file inside game
     this.load.text('gameData','assets/data/gamedata.json');
+
+    // load music
+    this.load.audio('botmusic','assets/music/Intro Theme.mp3');
   },
   //executed after everything is loaded
   create: function() {
+
+    //create music
+    music=this.add.audio('botmusic');
+    console.log("this is music",music);
+    music.play();
 
     // create ground
     this.ground = this.add.sprite(0, 638, 'ground');
@@ -77,7 +85,7 @@ var GameState = {
     this.game.camera.follow(this.player);
 
     // create barrel
-    this.barrel = this.add.sprite(280, 0, 'barrel');
+    this.barrel = this.add.sprite(280, 300, 'barrel');
     this.game.physics.arcade.enable(this.barrel);
     this.barrel.body.allowGravity = true;
   
@@ -86,9 +94,13 @@ var GameState = {
     this.fires.enableBody=true;
     this.game.physics.arcade.enable(this.fires);
     this.gameData.fireData.forEach(function(element){
-    var fire= this.fires.create(element.x,element.y,fire);
-    
+    var fire= this.fires.create(element.x,element.y,"fire");
+     fire.animations.add('animatedFire',[0,1],4,true);
+     fire.animations.play('animatedFire');
     },this);
+    this.fires.setAll('body.allowGravity',true);
+    
+
 
     
 
@@ -97,6 +109,8 @@ var GameState = {
     this.game.physics.arcade.collide(this.player,this.ground);
     this.game.physics.arcade.collide(this.player,this.platforms,this.landed);
     this.game.physics.arcade.collide(this.barrel,this.platforms);
+    this.game.physics.arcade.collide(this.fires,this.platforms);
+    this.game.physics.arcade.collide(this.player,this.fires,this.onFireTouch);
     // keyboard controls
     // if the initial velocity toward horizontal direction is not zero then set zero
     this.player.body.velocity.x=0;
@@ -124,6 +138,12 @@ var GameState = {
   },
   landed:function(player,platform){
     console.log("I just touched the platform")
+  },
+  onFireTouch:function(player,fires){
+    console.log("ouch!!! it burns");
+    game.state.start('GameState');
+    music.stop();
+    
   }
 
 };
@@ -133,3 +153,4 @@ var game = new Phaser.Game(360, 592, Phaser.AUTO);
 
 game.state.add('GameState', GameState);
 game.state.start('GameState');
+var music;
