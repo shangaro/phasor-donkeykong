@@ -9,50 +9,62 @@ var GameState = {
     this.scale.pageAlignVertically = true;
     // enable physics through out the game
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
-    this.game.physics.arcade.gravity.y = 1000
+    this.game.physics.arcade.gravity.y = 1000;
+    //enable keyboard controls
     this.cursors=this.game.input.keyboard.createCursorKeys();
     this.RUNNING_SPEED=180;
-    this.JUMPING_SPEED=650;
+    this.JUMPING_SPEED=651;
   },
 
   //load the game assets before the game starts
   preload: function() {
-    this.load.image('ground', 'assets/images/ground.png');    
-    this.load.image('platform', 'assets/images/platform.png');    
-    this.load.image('goal', 'assets/images/gorilla3.png');    
-    this.load.image('arrowButton', 'assets/images/arrowButton.png');    
-    this.load.image('actionButton', 'assets/images/actionButton.png');    
-    this.load.image('barrel', 'assets/images/barrel.png');    
+    this.load.image('ground', 'assets/images/ground.png');
+    this.load.image('platform', 'assets/images/platform.png');
+    this.load.image('platform2', 'assets/images/platform.png');
+    this.load.image('goal', 'assets/images/gorilla3.png');
+    this.load.image('arrowButton', 'assets/images/arrowButton.png');
+    this.load.image('actionButton', 'assets/images/actionButton.png');
+    this.load.image('barrel', 'assets/images/barrel.png');
 
-    this.load.spritesheet('player', 'assets/images/player_spritesheet.png', 28, 30, 5, 1, 1);    
-    this.load.spritesheet('fire', 'assets/images/fire_spritesheet.png', 20, 21, 2, 1, 1);      
+    this.load.spritesheet('player', 'assets/images/player_spritesheet.png', 28, 30, 5, 1, 1);
+    this.load.spritesheet('fire', 'assets/images/fire_spritesheet.png', 20, 21, 2, 1, 1);
   },
   //executed after everything is loaded
-  create: function() {    
+  create: function() {
 
     this.ground = this.add.sprite(0, 500, 'ground');
     this.game.physics.arcade.enable(this.ground);
     this.ground.body.allowGravity = false;
     this.ground.body.immovable = true;
 
-    this.platform = this.add.sprite(0, 300, 'platform');
+    this.platform = this.add.sprite(100, 300, 'platform');
     this.game.physics.arcade.enable(this.platform);
     this.platform.body.allowGravity = false;
     this.platform.body.immovable = true;
-    
+// new platform
+    this.platform2 = this.add.sprite(0, 200, 'platform');
+    this.game.physics.arcade.enable(this.platform2);
+    this.platform2.body.allowGravity = false;
+    this.platform2.body.immovable = true;
+
     //create player
     this.player = this.add.sprite(100, 200, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
-    // this.player.animations.play('walking');
+    this.player.animations.play('walking');
     this.game.physics.arcade.enable(this.player);
 
-
+    //barrel
+    this.barrel = this.add.sprite(200, 280, 'barrel', 5);
+    this.game.physics.arcade.enable(this.barrel);
+    this.barrel.body.allowGravity = false;
+    this.barrel.body.immovable = true;
   },
   update: function() {
     this.game.physics.arcade.collide(this.player,this.ground);
     this.game.physics.arcade.collide(this.player,this.platform,this.landed);
-
+    this.game.physics.arcade.collide(this.player,this.platform2,this.landed);
+    this.game.physics.arcade.collide(this.player,this.barrel);
     // keyboard controls
     // if the initial velocity toward horizontal direction is not zero then set zero
     this.player.body.velocity.x=0;
@@ -74,7 +86,7 @@ var GameState = {
   landed:function(player,platform){
     console.log("I just touched the platform")
   }
-  
+
 };
 
 //initiate the Phaser framework
@@ -82,4 +94,3 @@ var game = new Phaser.Game(360, 592, Phaser.AUTO);
 
 game.state.add('GameState', GameState);
 game.state.start('GameState');
-
