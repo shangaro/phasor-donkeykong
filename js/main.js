@@ -16,7 +16,7 @@ var GameState = {
     this.JUMPING_SPEED=651;
 
     // set the world size
-    this.game.world.setBounds(0,0,360,760);
+    this.game.world.setBounds(0,0,360,763);
 
   },
 
@@ -44,7 +44,9 @@ var GameState = {
     //create music
     music=this.add.audio('botmusic');
     console.log("this is music",music);
+    music.volume=0.2;
     music.play();
+
 
     // create ground
     this.ground = this.add.sprite(0, 638, 'ground');
@@ -53,6 +55,7 @@ var GameState = {
     this.game.physics.arcade.enable(this.ground);
     this.ground.body.allowGravity = false;
     this.ground.body.immovable = true;
+   
 
    
 
@@ -80,14 +83,21 @@ var GameState = {
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
     this.player.animations.play('walking');
     this.game.physics.arcade.enable(this.player);
+    this.player.velocity=0;
+    
 
     // attach camera to the player
     this.game.camera.follow(this.player);
 
     // create barrel
-    this.barrel = this.add.sprite(280, 300, 'barrel');
-    this.game.physics.arcade.enable(this.barrel);
-    this.barrel.body.allowGravity = true;
+    this.barrels = this.add.group();
+    this.barrels.enableBody=true;
+    this.game.physics.arcade.enable(this.barrels);
+    
+
+    // phasor's timeout to create barrel every 5sec
+    this.createBarrel();
+    this.game.time.events.loop(Phaser.Timer.SECOND*this.gameData.barrelFrequency,this.createBarrel,this);
   
     // create fire
     this.fires=this.add.group();
@@ -108,9 +118,12 @@ var GameState = {
   update: function() {
     this.game.physics.arcade.collide(this.player,this.ground);
     this.game.physics.arcade.collide(this.player,this.platforms,this.landed);
-    this.game.physics.arcade.collide(this.barrel,this.platforms);
+    this.game.physics.arcade.collide(this.barrels,this.platforms);
+    this.game.physics.arcade.collide(this.barrels,this.ground);
     this.game.physics.arcade.collide(this.fires,this.platforms);
-    this.game.physics.arcade.collide(this.player,this.fires,this.onFireTouch);
+    this.game.physics.arcade.collide(this.player,this.fires,this.killPlayer);
+    this.game.physics.arcade.collide(this.player,this.barrels,this.killPlayer);
+    this.player.body.collideWorldBounds=true;
     // keyboard controls
     // if the initial velocity toward horizontal direction is not zero then set zero
     this.player.body.velocity.x=0;
@@ -135,16 +148,37 @@ var GameState = {
        console.log("hey I just jumped");
        this.player.body.velocity.y=-this.JUMPING_SPEED;
     }
+    this.barrels.children.forEach(function(barrel){
+      if(barrel.x > 0 && barrel.y >600){
+        barrel.kill();
+      }
+    },this)
+    // destroy barrels stored on the ground;
+
   },
   landed:function(player,platform){
     console.log("I just touched the platform")
   },
-  onFireTouch:function(player,fires){
-    console.log("ouch!!! it burns");
+  killPlayer:function(player){
+    
     game.state.start('GameState');
     music.stop();
     
+  },
+  createBarrel:function(){
+    // get first dead sprite
+    var barrel=this.barrels.getFirstExists(false);
+    // if the barrel does not exist then create one
+    if(!barrel){
+      barrel=this.barrels.create(0,0,'barrel');
+    }
+    barrel.reset(this.gameData.barrelStartsAt.x,this.gameData.barrelStartsAt.y)
+    barrel.body.velocity.x=this.gameData.barrelVelocity;
+    barrel.body.collideWorldBounds=true;
+    barrel.body.bounce.setTo(1,0.5);
+    
   }
+ 
 
 };
 
